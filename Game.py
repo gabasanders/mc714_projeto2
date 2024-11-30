@@ -1,8 +1,10 @@
+from Eleicao import *
 from Process import Player
 from xmlrpc.server import SimpleXMLRPCServer
 import xmlrpc.client
 from socketserver import ThreadingMixIn
 import threading
+import time
 
 # Servidor com suporte a múltiplas threads
 class ThreadedXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
@@ -40,8 +42,11 @@ def auto():
     t3.start()
     t4.start()
 
-    # Passar o token para o primeiro jogador
-    with xmlrpc.client.ServerProxy("http://localhost:8000") as proxy:
+    # Elege o primeiro lider
+    leader = first_leader(players)
+
+    # Passa a token para o lider
+    with xmlrpc.client.ServerProxy(leader.addr) as proxy:
         proxy.receive_token()
 
 def manual():
@@ -67,13 +72,31 @@ def manual():
     t3.start()
     t4.start()
 
-    # Passar o token para o primeiro jogador
-    with xmlrpc.client.ServerProxy("http://localhost:8000") as proxy:
+
+    # Elege o primeiro lider
+    time.sleep(3)
+    leader = first_leader(players)
+
+    # Passa a token para o lider, que inicia a partida
+    with xmlrpc.client.ServerProxy(leader.addr) as proxy:
         proxy.receive_token()
 
+    print("Para movimentar o jogador i, digite: mi (Ex.: m1 faz o jogador 1 tentar se mover)")
+    print("Para parar o processo i, digite: pi (Ex.: p1 para o processo i)")
+
     while True:
-        entrada = int(input())
-        players[entrada].make_move()
+
+        entrada = input()
+
+        if entrada[0] == 'm':
+            players[int(entrada[1])].make_move()
+
+        if entrada[0] == 'p':
+            players[int(entrada[1])].status = 'Off'
+            
+            
+
+        
 
 if __name__ == "__main__":
 
